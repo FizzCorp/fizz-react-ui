@@ -101,7 +101,7 @@ class Channel extends Component {
     try {
       await this.props.client.chat.subscribe(this.props.channelId);
 
-      console.log("Channel: subscried to new channel")
+      console.log("Channel: subscried to new channel", this.props.channelId)
 
       // query the last(most recent) 50 messages published in the channel
       let messages = await this.props.client.chat.queryLatest(this.props.channelId, 50);
@@ -117,11 +117,22 @@ class Channel extends Component {
     }
   }
 
+  async unSubscribeChannel(channelId) {
+    try {
+      console.log("Channel: Unsubscribing channel: ", channelId);
+      await this.props.client.chat.unsubscribe(channelId);
+    }
+    catch (err) {
+      console.log("Channel: Error unsubscribing channel", err);
+    }
+  }
+
   async componentDidUpdate(prevProps) {
     if (this.props.channelId && prevProps.channelId) {
       if (this.props.channelId !== prevProps.channelId) {
         console.log("Channel: time to update to", this.props.channelId);
         this.setState({messages: {}});
+        await this.unSubscribeChannel(prevProps.channelId);
         this.subscribeAndFetchMessages();
       }
     }
