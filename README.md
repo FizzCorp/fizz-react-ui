@@ -1,7 +1,5 @@
 # fizz-react-ui
 
-> Made with create-react-library
-
 [![NPM](https://img.shields.io/npm/v/fizz-react-ui.svg)](https://www.npmjs.com/package/fizz-react-ui) [![JavaScript Style Guide](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](https://standardjs.com)
 
 ## Install
@@ -13,18 +11,27 @@ npm install --save fizz-react-ui
 ## Usage
 
 ```jsx
-import React, { Component } from 'react'
+import React from 'react'
 
-import MyComponent from 'fizz-react-ui'
-import 'fizz-react-ui/dist/index.css'
+import { Messages, Input, Chat, Channel  } from 'fizz-react-ui'
 
-class Example extends Component {
-  render() {
-    return <MyComponent />
-  }
+const APP_ID = "751326fc-305b-4aef-950a-074c9a21d461";
+const APP_SECRET = "5c963d03-64e6-439a-b2a9-31db60dd0b34";
+
+const App = () => {
+  return (
+  <Chat appId={APP_ID} appSecret={APP_SECRET} userId='ht' locale='en'>
+    <Channel channelId='global-channel'>
+      <Messages />
+      <Input />
+    </Channel>
+  </Chat>
+  )
 }
+
+export default App
 ```
 
 ## License
 
-MIT © [ht-fizz](https://github.com/ht-fizz)
+MIT
