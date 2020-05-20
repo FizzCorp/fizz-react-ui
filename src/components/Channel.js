@@ -33,7 +33,8 @@ class Channel extends Component {
     }
   }
 
-  hookChatEvents = (client) => {
+  hookChatEvents = () => {
+    let { client } = this.props;
     // Hook connected event. Fired everytime the client connectes to the message broker.
     client.chat.on('connected', async (syncRequired) => {
 
@@ -44,15 +45,7 @@ class Channel extends Component {
 
       try {
           if (syncRequired) { // Sync client state, always subscribe in connected listener
-              await client.chat.subscribe('global-channel');
-
-              // query the last(most recent) 50 messages published in the channel
-              let messages = await client.chat.queryLatest('global-channel', 50);
-
-              // Update messages on UI
-              this.setState({
-                messages: Object.assign({}, messages.reduce((result, item) => { result[item._id] = item; return result; }, {}))
-              })
+              this.subscribeAndFetchMessages();
           }
       }
       catch(err) {
@@ -100,8 +93,38 @@ class Channel extends Component {
   }
 
   componentDidMount() {
-    let client = this.props.client;
-    this.hookChatEvents(client);
+    this.hookChatEvents();
+  }
+
+  //Subscribe to current channel and fetch latest messages
+  subscribeAndFetchMessages = async () => {
+    try {
+      await this.props.client.chat.subscribe(this.props.channelId);
+
+      console.log("Channel: subscried to new channel")
+
+      // query the last(most recent) 50 messages published in the channel
+      let messages = await this.props.client.chat.queryLatest(this.props.channelId, 50);
+
+      // console.log("Channel: messages fetched", messages)
+
+      // Update messages on UI
+      this.setState({
+        messages: Object.assign({}, messages.reduce((result, item) => { result[item._id] = item; return result; }, {}))
+      })
+    } catch(err) {
+      console.log("Channel: error subscribing", err);
+    }
+  }
+
+  async componentDidUpdate(prevProps) {
+    if (this.props.channelId && prevProps.channelId) {
+      if (this.props.channelId !== prevProps.channelId) {
+        console.log("Channel: time to update to", this.props.channelId);
+        this.setState({messages: {}});
+        this.subscribeAndFetchMessages();
+      }
+    }
   }
 
   setNewMessageState(message) {
@@ -126,7 +149,7 @@ class Channel extends Component {
         await this.props.client.chat.publishMessage(_to, _nick, _body, JSON.stringify({ _refId: messageItem._id }), true, true, true);
       }
       catch (err) {
-        console.log("---> Error sending message", err);
+        console.log("Channel: ---> Error sending message", err);
         messageItem._status = MESSAGE_STATE.FAILED
         // Update sent message state to failure
         this.setNewMessageState(messageItem);

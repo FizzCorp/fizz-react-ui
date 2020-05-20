@@ -45,12 +45,33 @@ export class Chat extends Component {
     }
   }
 
-  async componentDidMount() {
+  async initializeClient() {
+    console.log("Chat: Initializing client, change-in-props or initialized");
     const { appId, appSecret, userId, locale } = this.props;
     let client = await FizzClient.create(appId, appSecret, userId, locale);
     this.setState({
       clientInitialized: true, client: client
     });
+  }
+
+  componentDidMount() {
+    this.initializeClient();
+  }
+
+  componentDidUpdate(prevProps) {
+    if (this.props.appId && this.props.appSecret && this.props.userId && this.props.locale) {
+      if (prevProps.appId && prevProps.appSecret && prevProps.userId && prevProps.locale) {
+        if (
+               this.props.appId !== prevProps.appId
+            || this.props.appSecret !== prevProps.appSecret 
+            || this.props.userId !== prevProps.userId
+            || this.props.locale !== prevProps.locale
+            ) {
+              // console.log("Chat: Time to update something from", this.props);
+              this.initializeClient();
+        }
+      }
+    }
   }
 
   getContext = () => {
